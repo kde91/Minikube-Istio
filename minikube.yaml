@@ -1,0 +1,67 @@
+- hosts: localhost
+  become: yes
+
+  handlers:
+  - name: disable swap
+    shell: |
+      swapoff -a
+  - name: sysctl system
+    shell: |
+      sysctl --system
+  - name: reload firewall
+    shell: |
+      firewall-cmd --reload
+  - name: start minikube
+    shell: |
+      minikube start --driver=none
+  - name: enable kubelet.service
+    service:
+      name: kubelet.service
+      enabled: yes
+      state: started
+
+  tasks:
+  # Disable swap
+  - name: disable swap in fstab
+    replace:
+      path: /etc/fstab
+      regexp: '^([^#].*?\sswap\s+swap\s+.*)$'
+      replace: '# \1'
+    notify:
+    - disable swap
+
+
+  # Kubernetes v1.18.2 requires conntrack to be installed in root's path
+  - name: ensure conntrack
+    apt:
+      name: conntrack
+      state: latest
+
+  # Docker
+  - name: ensure docker installed
+    apt:
+      name: docker
+      state: latest
+  - name: ensure docker service
+    service:
+      name: docker
+      enabled: yes
+      state: started
+
+  - name: install k8 repo
+    #get_url:
+    # url:  https://storage.googleapis.com/minikube/releases/latest/minikube-linux-amd64
+    # dest: /root
+    shell: curl -Lo minikube https://storage.googleapis.com/minikube/releases/latest/minikube-linux-amd64
+
+  - name: execute minikube binary
+    #shell: chmod +x minikube
+    ansible.builtin.file:
+     path: /root/minikube
+     mode: '0755'
+
+  - name: move minikube
+    shell: mv minikube /usr/local/bin/
+    notify:
+    - start minikube
+    - enable kubelet.service
