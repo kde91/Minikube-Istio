@@ -1,0 +1,19 @@
+- hosts: localhost
+  become: yes
+
+  tasks:
+
+  - name: Download Istio
+    shell: curl -L https://istio.io/downloadIstio | sh -
+
+
+  - name: Change dir
+    shell: cd istio-1.13.1
+
+
+  - name: Add istioctl client path
+    shell: export PATH=$PWD/bin:$PATH
+
+
+  - name: install istio
+    shell: istioctl install --set profile=demo -y
