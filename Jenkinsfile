@@ -32,10 +32,26 @@ pipeline {
             }
         }
 		
-		stage('Create Service') {
+		stage('Create Service for blue container') {
             steps {
                
                     kubectl apply -f svc-blue-green.yaml
+                
+            }
+        }
+	    
+	    stage('Check deployment for blue container') {
+            steps {
+               
+                    curl http://172.31.14.105:31562
+                
+            }
+        }
+	    
+	    stage('Switch traffic for green container') {
+            steps {
+               
+                    kubectl replace -f svc-blue-green.yaml
                 
             }
         }
