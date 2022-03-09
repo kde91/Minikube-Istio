@@ -60,7 +60,7 @@
      path: /root/minikube
      mode: '0755'
 
-  - name: move minikube
+  - name: Start minikube
     shell: mv minikube /usr/local/bin/
     notify:
     - start minikube
